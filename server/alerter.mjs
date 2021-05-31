@@ -6,13 +6,13 @@ import {exec} from "child_process"
 import {parseTelegramChatIDs} from "./helpers.mjs"
 
 export const processAlerter = async (config) => {
-    const {telegramToken, telegramChatIDAlert, blockDiff, restartAfter, restartAfterNotSynced, canRestartNode, restartCmd, alertInterval} = config
+    const {telegramToken, telegramChatID, blockDiff, restartAfter, restartAfterNotSynced, canRestartNode, restartCmd, alertInterval} = config
     const TELEGRAM_URL = TELEGRAM_BOT_URL.replace("%TOKEN%", telegramToken)
-    const ids = parseTelegramChatIDs(telegramChatIDAlert)
+    const ids = parseTelegramChatIDs(telegramChatID)
 
     let status = await nodeInfo('node-status', config)
 
-    if (!config || !telegramToken || !telegramChatIDAlert) return
+    if (!config || !telegramToken || !telegramChatID) return
 
     if (status && status.data && status.data.daemonStatus) {
         const {syncStatus, blockchainLength, highestUnvalidatedBlockLengthReceived, addrsAndPorts} = status.data.daemonStatus

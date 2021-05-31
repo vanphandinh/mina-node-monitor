@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  client-monitor:
+    container_name: client-monitor
+    build:
+      context: .
+      dockerfile: client.Dockerfile
+    ports:
+      - "80:2222"
+    image: client-monitor
+    restart: unless-stopped
+    pid: host
+    networks:
+      - client-monitor
+
+networks:
+  client-monitor:
+    name: client-monitor
+    driver: bridge

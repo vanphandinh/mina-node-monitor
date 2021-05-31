@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+  server-monitor:
+    container_name: server-monitor
+    build:
+      context: .
+      dockerfile: server.Dockerfile
+    image: server-monitor
+    restart: unless-stopped
+    pid: host
+    network_mode: host

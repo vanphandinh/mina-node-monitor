@@ -79,7 +79,7 @@ body.light-mode {
       color: var(--accent-color-light);
     }
 
-    &.alert, &.warning{
+    &.alert, &.warning, &.catchup {
       background: var(--alert-color-light);
       color: #fff;
 
@@ -95,6 +95,9 @@ body.light-mode {
     }
     &.warning{
       background: var(--warning-color-light);
+    }
+    &.catchup{
+      background: var(--info-color2-light);
     }
   }
 
@@ -114,7 +117,7 @@ body.light-mode {
     border-color: var(--panel-background-light);
   }
   .progress-back {
-    background: var(--alert-color-light);
+    background: #f0f6fc;
   }
   .progress-bar {
     background: var(--info-color1-light);

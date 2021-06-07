@@ -24,9 +24,14 @@ const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'))
 const [SERVER_HOST, SERVER_PORT] = config.host.split(":")
 
 globalThis.restartTimer = 0
+globalThis.restartTimerMax = 0
+globalThis.restartTimerUnv = 0
+globalThis.restartTimerPrev = 0
 globalThis.restartTimerNotSynced = 0
 globalThis.currentBalance = 0
 globalThis.currentHeight = 0
+globalThis.currentControlHeight = 0
+globalThis.controlCounter = 0
 
 const requestListener = async (req, res) => {
     let response
@@ -45,6 +50,7 @@ const requestListener = async (req, res) => {
         case '/blockchain': response = await nodeInfo('blockchain', config); break;
         case '/node-status': response = await nodeInfo('node-status', config); break;
         case '/balance': response = await nodeInfo('balance', config); break;
+        case '/block-speed': response = await nodeInfo('block-speed', config); break;
         case '/explorer': response = await getExplorerSummary(); break;
         case '/uptime': response = await getUptime(config.publicKey); break;
         case '/time': response = await sysInfo('time'); break;
@@ -74,7 +80,7 @@ if (useHttps) {
 }
 
 server.listen(+SERVER_PORT, SERVER_HOST, () => {
-    console.log(`Mina Node Server Monitor is running on ${useHttps ? 'https' : 'http'}://${SERVER_HOST}:${SERVER_PORT}`)
+    console.log(`Mina Monitor Server is running on ${useHttps ? 'https' : 'http'}://${SERVER_HOST}:${SERVER_PORT}`)
 })
 
 setTimeout( () => processHello(config), 0)

@@ -12,15 +12,24 @@
     <div class="container-fluid">
         <div class="row">
             <div class="cell-md-3">
-                <div class="logo-container h-100 d-flex flex-align-center flex-justify-center flex-justify-start-md">
-                    <div class="h5 text-light no-wrap">
-                        <img class="logo" src="images/logo.png"> <span class="fg-accent">MINA</span><span class="fg-warning">MONITOR</span> <small class="fg-normal">v1.0.2</small>
+                <div class="logo-container h-100 d-flex flex-align-center flex-align-start-md flex-justify-center flex-justify-start-md flex-column">
+                    <div class="h5 text-light no-wrap m-0">
+                        <span class="fg-accent text-bold">MINA</span><span class="fg-warning">MONITOR</span> <small class="fg-normal">v1.0.3</small>
+                    </div>
+                    <div class="text-small text-upper" style="line-height: 1">
+                        Convenient monitoring of your Mina node!
+                    </div>
+                    <div class="text-small" style="line-height: 1">
+                        <span class="reduce-2">
+                            Copyright &copy; 2021 by <a href="https://pimenov.com.ua">Serhii Pimenov</a>.
+                            Special for MINA community.
+                        </span>
                     </div>
                 </div>
             </div>
             <div class="cell-md-6">
                 <div class="h-100 d-flex flex-align-center flex-justify-center flex-column">
-                    <div class="text-small fg-normal">Next block will be produce at</div>
+                    <div class="text-small fg-normal">the next block will be produced on</div>
                     <span id="next-block-time" class="h3 m-0 fg-accent text-bold">Calculating...</span>
                     <div class="text-small"><span id="next-block-left" class="fg-info3"></span></div>
                     <div class="text-small"><span id="epoch-duration" class="fg-warning">calculating...</span></div>
@@ -63,6 +72,12 @@
                             <span class="fg-normal text-small">network: </span>
                             <span id="network-status" class="text-small fg-accent text-bold">UNKNOWN</span>
                         </div>
+                        <div class="catchup-process catchup-process-left">
+                            <span class="mif-arrow-up"></span>
+                        </div>
+                        <div class="catchup-process catchup-process-right">
+                            <span class="mif-arrow-up"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -74,6 +89,10 @@
                             max: <span id="max-block" class="text-bold">0</span>
                             unv: <span id="max-unvalidated" class="text-bold">0</span>
                             exp: <span id="explorer-height" class="text-bold">0</span>
+                        </div>
+                        <div class="text-small">
+                            <span>speed: </span>
+                            <span id="block-speed">0</span>
                         </div>
                     </div>
                 </div>
@@ -117,7 +136,7 @@
                         <div id="epoch-number" class="text-center h2 m-0 fg-info2">0</div>
                         <div class="text-small fg-normal">time <span id="end-of-epoch" class="fg-warning text-bold">calculating...</span> left</div>
                         <div class="w-100 pl-10 pr-10 mt-1">
-                            <div data-role="progress" id="epoch-progress" data-small="true" data-cls-back="progress-back" data-cls-bar="progress-bar"></div>
+                            <div data-role="progress" id="epoch-progress" data-small="false" data-cls-back="progress-back" data-cls-bar="progress-bar"></div>
                         </div>
                     </div>
                 </div>
@@ -133,11 +152,14 @@
         </div>
 
         <div class="row">
-            <div class="cell-md-6 cell-lg-5">
+            <div class="cell-md-6 cell-lg-6">
                 <div data-role="panel" data-title-caption="RAM <span id='ram-total' class='enlarge-4 text-bold fg-cyan'>0</span> GiB">
                     <div class="row">
                         <div class="cell-lg-6">
-                            <div id="memory-load"></div>
+                            <div class="h-100">
+                                <div id="memory-usage"></div>
+                                <div id="memory-free"></div>
+                            </div>
                         </div>
                         <div class="cell-lg-6">
                             <div id="memory-use"></div>
@@ -150,24 +172,17 @@
                 </div>
             </div>
 
-            <div class="cell-md-6 cell-lg-5">
-                <div data-role="panel" data-title-caption="CPU USAGE">
+            <div class="cell-md-6 cell-lg-6">
+                <div data-role="panel" data-title-caption="CPU <span id='threads-count'></span>">
                     <div class="row">
                         <div class="cell-lg-6">
                             <div id="cpu-load"></div>
+                            <div id="cpu-load-all"></div>
                         </div>
                         <div class="cell-lg-6">
                             <div id="cpu-use"></div>
                             <div class="text-small text-center mt-10-minus">Load average: <span id="loadavg"></span></div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="cell-md-12 cell-lg-2">
-                <div data-role="panel" data-title-caption="CPU <span id='vcpu' class='enlarge-4 text-bold fg-info2'>0</span> THs" data-cls-content="pl-0 pr-0">
-                    <div class="h-100">
-                        <div id="cpu-load-all"></div>
                     </div>
                 </div>
             </div>
@@ -177,11 +192,12 @@
             <div class="cell-md-6 cell-lg-3">
                 <div data-role="panel" data-title-caption="NETWORK">
                     <div class="d-flex flex-column flex-align-center h-100">
-                        <div id="net-load" class="w-100"></div>
-                        <div class="mt-auto w-100 p-4 bg-system border bd-system">
+                        <div id="net-load-tx" class="w-100"></div>
+                        <div id="net-load-rx" class="w-100"></div>
+                        <div class="mt-auto w-100 p-2 bg-system border bd-system">
                             <div class="text-center text-small text-muted fg-normal">Network Traffic</div>
                             <div class="d-flex flex-row flex-nowrap flex-justify-center flex-align-end">
-                                <span class="h2 m-0 text-center fg-info2" id="all-traffic">0</span>
+                                <span class="h4 m-0 text-center fg-info2" id="all-traffic">0</span>
                                 <small class="ml-1 fg-normal">MB/S</small>
                             </div>
                         </div>
@@ -192,9 +208,9 @@
                 <div data-role="panel" data-title-caption="PEERS">
                     <div class="d-flex flex-column flex-align-center h-100">
                         <div id="peers-load" class="w-100"></div>
-                        <div class="mt-auto w-100 p-4 bg-system border bd-system">
-                            <div class="text-center text-small text-muted fg-noraml">Peers Connected</div>
-                            <div class="h2 m-0 text-center fg-info2" id="peers-count">0</div>
+                        <div class="mt-auto w-100 p-2 bg-system border bd-system">
+                            <div class="text-center text-small text-muted fg-normal">Peers Connected</div>
+                            <div class="h4 m-0 text-center fg-info2" id="peers-count">0</div>
                         </div>
                     </div>
                 </div>
@@ -221,9 +237,9 @@
                             </tr>
                         </table>
 
-                        <div class="mt-auto w-100 p-4 bg-system border bd-system">
+                        <div class="mt-auto w-100 p-2 bg-system border bd-system">
                             <div class="text-center text-small text-muted fg-normal">Network Connections</div>
-                            <div class="h2 m-0 text-center fg-info2" id="network-connections">0</div>
+                            <div class="h4 m-0 text-center fg-info2" id="network-connections">0</div>
                         </div>
                     </div>
                 </div>
@@ -271,23 +287,18 @@
         </div>
 
         <div class="row">
-            <div class="cell-lg-6">
+            <div class="cell-lg-4">
                 <div data-role="panel" data-title-caption="BLOCK PRODUCER">
-                    <div id="block-producer" class="text-center d-none-md">No data</div>
-                    <div id="block-producer-full" class="text-center d-none d-block-md">No data</div>
+                    <div id="block-producer" class="text-center">No data</div>
                 </div>
             </div>
-            <div class="cell-lg-6">
+            <div class="cell-lg-4">
                 <div data-role="panel" data-title-caption="SNARK WORKER <span id='snark-worker-fee' class='fg-accent'>">
-                    <div id="snark-worker" class="text-center d-none-md">No data</div>
-                    <div id="snark-worker-full" class="text-center d-none d-block-md">No data</div>
+                    <div id="snark-worker" class="text-center">No data</div>
                 </div>
             </div>
-        </div>
-
-        <div class="row">
-            <div class="cell-12">
-                <div data-role="panel" data-title-caption="NODE VERSION">
+            <div class="cell-lg-4">
+                <div data-role="panel" data-title-caption="MINA VERSION">
                     <div id="node-version" class="text-center fg-normal">unknown</div>
                 </div>
             </div>

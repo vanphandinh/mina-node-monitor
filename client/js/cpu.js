@@ -10,9 +10,6 @@ export const processCPUData = async () => {
     const elLog = $("#log-cpu")
     elLog.html(imgStop)
 
-    let container = $("#cpu-load-all")
-    let height = 208
-
     if (!cpuGauge) {
         cpuGauge = chart.gauge('#cpu-use', [0], {
             ...defaultGaugeConfig,
@@ -26,12 +23,15 @@ export const processCPUData = async () => {
 
     if (!cpuChart) {
         cpuChart = chart.areaChart("#cpu-load", [
-            {
-                name: "CPU usage",
-                data: getFakeData(40)
-            }
+            getFakeData(40)
         ], {
             ...defaultChartConfig,
+            height: 100,
+            areas: [
+                {
+                    name: "CPU usage"
+                }
+            ],
             colors: [Metro.colors.toRGBA('#00AFF0', .5), Metro.colors.toRGBA('#aa00ff', .5)],
             legend: false,
             axis: {
@@ -44,7 +44,6 @@ export const processCPUData = async () => {
                         count: 10,
                         color: globalThis.chartLabelColor,
                     },
-                    arrow: false
                 },
                 y: {
                     line: {
@@ -56,16 +55,16 @@ export const processCPUData = async () => {
                         font: {
                             size: 10
                         },
-                        skip: 2
+                        skip: 2,
                     },
-                    arrow: false
                 }
             },
+            arrows: false,
             padding: {
-                left: 35,
-                top: 5,
+                left: 1,
+                top: 1,
                 right: 1,
-                bottom: 5
+                bottom: 1
             },
             boundaries: {
                 maxY: 100,
@@ -86,27 +85,28 @@ export const processCPUData = async () => {
 
         let {load = 0, user = 0, sys = 0, loadavg = [0, 0, 0], threads = []} = cpuLoad
 
-        cpuChart.addPoint(0, [datetime().time(), load])
+        cpuChart.add(0, [datetime().time(), load], true)
         cpuGauge.setData([load])
 
-        $("#loadavg").html(`<span class="text-bold">${loadavg[0]}</span> <span>${loadavg[1]}</span> <span>${loadavg[2]}</span>`)
+        $("#threads-count").html(`${cpuLoad.threads.length} THREADS`)
 
-        if (!container.children().length) {
+        if ($("#cpu-load-all").children().length === 0) {
             cpuSegment = chart.segment("#cpu-load-all", cpuLoad.threads, {
+                height: 100,
                 padding: {
+                    left: 2,
+                    right: 2,
                     top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0
+                    bottom: 0
                 },
+                margin: 0,
                 segment: {
-                    rowDistance: 6,
-                    count: 40,
-                    height: height / (cpuLoad.threads.length) - 6
+                    rowDistance: 4,
+                    count: 40
                 },
                 colors: [ [70, '#60a917'], [90, '#f0a30a'], [100, '#a20025'] ],
                 border: {
-                    color: "transparent"
+                    color: globalThis.chartLineColor
                 },
                 ghost: {
                     color: globalThis.darkMode ? "rgba(125, 195, 123, .1)" : "#f0f6fc"
@@ -117,6 +117,8 @@ export const processCPUData = async () => {
                 cpuSegment.setData(v, i)
             })
         }
+
+        $("#loadavg").html(`<span class="text-bold">${loadavg[0]}</span> <span>${loadavg[1]}</span> <span>${loadavg[2]}</span>`)
 
         elLog.html(imgOk)
     }

@@ -12,7 +12,7 @@
   --fill-color-light: rgba(125, 195, 123, .3);
 }
 
-body.light-mode {
+.light-mode {
   background: var(--body-background-light);
   color: var(--text-color-light);
 
@@ -117,7 +117,7 @@ body.light-mode {
     border-color: var(--panel-background-light);
   }
   .progress-back {
-    background: #f0f6fc;
+    background: #c1c1c1;
   }
   .progress-bar {
     background: var(--info-color1-light);
@@ -127,8 +127,22 @@ body.light-mode {
     color: var(--accent-color-light);
   }
 
-  #sidecar-position, #sidecar-uptime, #sidecar-score {
-    color: var(--accent-color-light);
+  a {
+    color: var(--info-color2-light)!important;
   }
 
+}
+
+html.light-mode[class*=scrollbar-type] {
+  ::-webkit-scrollbar-thumb {
+    background-color: #d0d0d0 !important;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #f6f8fa;
+  }
+
+  * {
+    scrollbar-color: var(--info-color2-light) #1e2228!important;
+  }
 }

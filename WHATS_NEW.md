@@ -1,3 +1,10 @@
+### 1.0.4
++ [x] Delegations info
++ [x] Rewards in current epoch info
++ [x] Mina price info
++ [x] Calculate balance in USD
++ [x] Check for forward fork
+
 ### 1.0.3
 + [x] Five types of alert: `Long-non-sync`, `Diff-with-max`, `Diff-with-unvalidated`, `Hanging-state`, `Diff-with-Explorer`
 + [x] Four events to restart: `Long-non-sync`, `Diff-with-max`, `Diff-with-unvalidated`, `Hanging-state`

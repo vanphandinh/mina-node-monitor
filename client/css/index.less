@@ -12,6 +12,18 @@
   --fill-color: rgba(125, 195, 123, .3);
 }
 
+.label-success {
+  color: #7dc37b;
+}
+
+.label-warning {
+  color: #ff8330;
+}
+
+.label-alert {
+  color: #ea0b0b;
+}
+
 .fg-normal {
   color: var(--text-color);
 }
@@ -63,7 +75,7 @@ body {
 }
 
 .logo-container {
-  padding: 20px 0 10px 0;
+  padding: 10px 0;
 }
 
 .logo {
@@ -130,7 +142,7 @@ hr {
   }
 }
 
-#hostname, #node-status, #block-height, #node-uptime, #epoch-number, #slot-number, #balance-total, #currency-total {
+#hostname, #node-status, #block-height, #node-uptime, #epoch-number, #slot-number, #balance-total {
   font-size: 28px;
   font-weight: bold;
   line-height: 1;
@@ -138,10 +150,6 @@ hr {
 
 #node-uptime {
   white-space: nowrap;
-}
-
-#currency-total {
-  font-size: 28px;
 }
 
 #block-producer-full, #snark-worker-full {
@@ -187,10 +195,6 @@ hr {
   line-height: 1.2;
 }
 
-#sidecar-position, #sidecar-uptime, #sidecar-score {
-  color: var(--info-color3);
-}
-
 canvas {
   max-width: 100%;
 }
@@ -232,6 +236,47 @@ canvas {
   100% {
     top: 0;
   }
+}
+
+html[class*=scrollbar-type] {
+  ::-webkit-scrollbar-thumb {
+    background-color: #444c56!important;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: #22272e;
+  }
+
+  * {
+    scrollbar-color: #22272e #1e2228!important;
+  }
+}
+
+a {
+  color: #fff!important;
+  text-decoration: none!important;
+  font-size: 1.1em
+}
+
+#explorer-alert {
+  position: absolute;
+  right: 5px;
+  top: 12px;
+  display: none;
+  font-size: 1.5em;
+}
+
+.panel.explorer-alert {
+  #explorer-alert {
+    display: block;
+  }
+}
+
+#cpu-temp {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: 38px;
 }
 
 @import "light";

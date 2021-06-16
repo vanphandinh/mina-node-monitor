@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://metroui.org.ua/res/mina-monitor-banner2.jpg">
+    <img src="https://metroui.org.ua/res/mina-monitor-banner-1.0.4-1.jpg">
 </p> 
 
 # Mina Node Monitor
@@ -65,11 +65,15 @@ Create file `config.json` in a `client` folder. Example below demonstrate witch 
         "net": 2000,
         "mem": 2000,
         "cpu": 2000,
-        "uptime": 600000
+        "uptime": 600000      
+    },
+    "price": {
+        "currency": "usd",
+        "update_interval": 60000
     },
     "theme": "auto",
     "useProxy": false,
-    "proxy": "https://server/proxy.php",
+    "proxy": "https://server/proxy.php"
 }
 ```
 
@@ -93,13 +97,24 @@ Section for using proxy (read about proxy below)
 - `useProxy` - use or not proxy server
 - `proxy` - proxy server address
 
-
+For `price.currency` you can use one of the next values:
+```
+"btc", "eth", "ltc", "bch", "bnb", "eos", "xrp", "xlm",
+"link", "dot", "yfi", "usd", "aed", "ars", "aud", "bdt", "bhd",
+"bmd", "brl", "cad", "chf", "clp", "cny", "czk", "dkk", "eur",
+"gbp", "hkd", "huf", "idr", "ils", "inr", "jpy", "krw", "kwd",
+"lkr",  "mmk",  "mxn",  "myr",  "ngn",  "nok",  "nzd",  "php",
+"pkr",  "pln",  "rub",  "sar",  "sek",  "sgd",  "thb",  "try",
+"twd",  "uah",  "vef",  "vnd",  "zar",  "xdr",  "xag",  "xau",
+"bits",  "sats"
+```
 
 #### Config file for server 
 Create file `config.json` in a `server` folder. Example below demonstrate witch data you must create.
 ```json
 {
     "publicKey": "B62qr...",
+    "publicKeyDelegators": "B62qr...",
     "telegramToken": "XXXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "telegramChatID": "XXXXXXXXX",
     "telegramChatIDAlert": "XXXXXXXXX",
@@ -253,4 +268,11 @@ In the client config file, define 2 parameters `useProxy`,` proxy`:
     "useProxy": true,
     "proxy": "https://server/proxy.php"
 }
+```
+
+### CPU Temperature
+If your Monitor server-side part installed on Linux, you can get `CPU temperature` (of course, if you have CPU temperature sensors on the server).
+If you are sure that there are sensors, but the client does not show the CPU temperature, try installing the `lm-sensors` package:
+```shell
+sudo apt install lm-sensors
 ```

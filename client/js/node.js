@@ -15,12 +15,19 @@ const getExplorerSummary = async () => await getInfo('explorer')
 const getBalance = async () => await getInfo('balance')
 
 const processBalance = async () => {
+    const {currency = 'usd'} = globalThis.config.price
+
     let status = await getBalance()
 
     if (status && status.data && status.data.account && status.data.account.balance) {
         const {total, liquid} = status.data.account.balance
+
+        globalThis.balance = +total / 10**9
+
         $("#balance-total").text((total/10**9).format(2, null, ",", "."))
         $("#balance-liquid").text((liquid/10**9).format(2, null, ",", "."))
+
+        $("#balance-usd").text((globalThis.balance * globalThis.price).format(2, null, ",", ".") + " " + currency.toUpperCase())
     }
 }
 
@@ -40,9 +47,9 @@ const processExplorerSummary = async () => {
 
     elExplorerHeight.text(blockchainLength)
 
-    elBlockHeightPanel.removeClass('alert warning')
+    elBlockHeightPanel.removeClass('explorer-alert')
     if (Math.abs(+globalThis.blockchainLength - +blockchainLength) >= 2) {
-        elBlockHeightPanel.addClass('warning')
+        elBlockHeightPanel.addClass('explorer-alert')
     }
     elLog.html(imgOk)
 }
@@ -178,7 +185,6 @@ export const processNodeStatus = async () => {
         const elEndOfEpoch = $("#end-of-epoch")
         const elEpochDuration = $("#epoch-duration")
         const elNodeVersion = $("#node-version")
-        const elCatchupProcess = $(".catchup-process")
 
         const shortVersion = version.substring(0, partLength) + ' ... ' + version.substring(version.length - partLength)
         elNodeVersion.text(shortVersion).attr("data-full-name", version)
@@ -210,6 +216,9 @@ export const processNodeStatus = async () => {
         } else {
             elNextBlockTime.text(syncStatus === 'BOOTSTRAP' ? 'No data available' : 'None this epoch :(')
             elNextBlockLeft.text('')
+            if (syncStatus !== 'BOOTSTRAP') {
+                globalThis.noSlots = true
+            }
         }
 
         // Epoch end
@@ -220,7 +229,9 @@ export const processNodeStatus = async () => {
         const epochHours = blockLeft.h ? blockLeft.h + 'h' : ''
         const epochMinutes = blockLeft.m ? blockLeft.m + 'm' : ''
         elEndOfEpoch.html(`${epochDays} ${epochHours} ${epochMinutes}`)
-        elEpochDuration.html(`epoch will end in ${epochDays} ${epochHours} ${epochMinutes}`)
+        elEpochDuration.html(`${epochDays} ${epochHours} ${epochMinutes}`)
+
+        // globalThis.marques[1] = `epoch will end in ${epochDays} ${epochHours} ${epochMinutes}`
 
 
         // block height
@@ -229,13 +240,14 @@ export const processNodeStatus = async () => {
         elMaxBlock.text(highestBlockLengthReceived)
         elMaxUnvalidated.text(highestUnvalidatedBlockLengthReceived)
 
+        globalThis.blockHeight = blockchainLength
+
         const blockDiff = Math.abs(+blockchainLength - +highestUnvalidatedBlockLengthReceived)
         elBlockHeight.closest(".panel").removeClass('alert warning')
         if (syncStatus === 'SYNCED') {
-            if (blockDiff === 2) {
+            if (+highestUnvalidatedBlockLengthReceived === 0 || blockDiff === 2) {
                 elBlockHeight.closest(".panel").addClass('warning')
-            }
-            if (blockDiff > 2) {
+            } else if (blockDiff > 2) {
                 elBlockHeight.closest(".panel").addClass('alert')
             }
         } else {

@@ -1,6 +1,6 @@
 {
     "name": "@olton/mina-monitor",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "license": "MIT",
     "type": "module",
     "scripts": {
@@ -9,7 +9,7 @@
         "build_site": "xcopy client\\config.json dist\\*.* /Y /I && parcel build -d dist --public-url . --no-minify --no-source-maps client/index.html",
         "build_site_x": "cp -a client/config.json dist && parcel build -d dist --public-url . --no-minify --no-source-maps client/index.html",
         "build": "rimraf -rf dist & mkdir dist & npm run build_site",
-        "build_x": "rm -rf dist & mkdir dist & npm run build_site_x"
+        "build_x": "rm -rf dist && mkdir dist && npm run build_site_x"
     },
     "devDependencies": {
         "@babel/cli": "^7.13.16",

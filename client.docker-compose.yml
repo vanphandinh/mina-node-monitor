@@ -7,9 +7,11 @@ services:
       context: .
       dockerfile: client.Dockerfile
     ports:
-      - "80:2222"
+      - "2222:2222"
     image: client-monitor
     restart: unless-stopped
+    volumes: 
+      - "./client/config.json:/usr/src/mina-node-monitor/client/config.json"
     pid: host
     networks:
       - client-monitor

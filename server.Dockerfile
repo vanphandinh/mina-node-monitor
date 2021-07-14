@@ -16,4 +16,4 @@ RUN npm ci --only=production
 COPY . .
 
 EXPOSE 8000
-CMD [ "node", "server/monitor.mjs"]
+CMD [ "npm", "run", "server"]

@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 import {getFakeData} from "./helpers/get-fake-data";
 import {defaultChartConfig} from "./helpers/chart-config";
@@ -108,7 +107,7 @@ export const processNetInfo = async () => {
         elLog.html(imgOk)
     }
 
-    setTimeout(()=> processNetInfo(), globalThis.config.intervals.net)
+    setTimeout(processNetInfo, globalThis.config.intervals.resources)
 }
 
 export const processNetConnections = async () => {
@@ -123,6 +122,6 @@ export const processNetConnections = async () => {
         // console.log("Net (re)loaded!")
     }
 
-    setTimeout(() => processNetConnections(), globalThis.config.intervals.net)
+    setTimeout(processNetConnections, globalThis.config.intervals.resources)
 }
 

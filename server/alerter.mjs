@@ -1,62 +1,53 @@
-import {nodeInfo} from "./node.mjs"
-import {telegram} from "./telegram.mjs"
-import {exec} from "child_process"
 import {hostname} from "os"
 import {getExplorerSummary} from "./explorer.mjs";
+import {sendAlert, restart, deleteFromArray} from "./helpers.mjs";
+import {sysInfo} from "./system.mjs";
 
-export const processAlerter = async (config) => {
+export const processAlerter = async () => {
+    if (!globalThis.config) return
+
     const {
-        telegramToken,
-        telegramChatIDAlert,
-        blockDiff,
-        restartAfterMax,
-        restartAfterUnv,
-        restartAfterPrev,
+        blockDiff = 2,
+        blockDiffToRestart = 4,
         restartAfterNotSynced,
         canRestartNode,
         restartCmd,
         alertInterval,
         observeExplorer,
         restartStateException = [],
-        restartStateSyncedRules = []
-    } = config
+        restartStateSyncedRules = [],
+        hangInterval = 1800000,
+        hangIntervalAlert = 900000,
+        memAlert = 90,
+        memRestart = 0
+    } = globalThis.config
+    let reload
     const host = hostname()
+    const mem = sysInfo('mem')
+    const usedMem = 100 - Math.round(mem.free * 100 / mem.total)
 
-    if (!config || !telegramToken || !telegramChatIDAlert) return
+    if (usedMem >= memAlert) {
+        sendAlert("MEM", `The node uses more than ${usedMem}% of the memory`)
+    }
 
-    let status = await nodeInfo('node-status', config)
+    if (memRestart !== 0 && usedMem >= memRestart) {
+        restart(`Critical memory usage (${usedMem}%)`)
+    }
+
+    let status = globalThis.nodeInfo.nodeStatus
 
     if (status && status.data && status.data.daemonStatus) {
-        const {syncStatus, blockchainLength, highestBlockLengthReceived, highestUnvalidatedBlockLengthReceived, addrsAndPorts} = status.data.daemonStatus
+        const {syncStatus, blockchainLength, highestBlockLengthReceived, highestUnvalidatedBlockLengthReceived, addrsAndPorts, peers = 0} = status.data.daemonStatus
         const ip = addrsAndPorts.externalIp
         const SYNCED = syncStatus === 'SYNCED'
-        let OK_SYNCED = true, OK_MAX = true, OK_UNV = true, OK_PREV = true
+        let OK_SYNCED = true
         const sign = `\nHost: ${host}\nIP: ${ip}`
 
-        const restart = (reason) => {
-            exec(restartCmd, async (error, stdout, stderr) => {
-                let message, result
-
-                if (error) {
-                    result = error.message
-                } else
-                if (stderr) {
-                    result = stderr
-                } else {
-                    result = 'OK'
-                }
-
-                message = `Restart command executed for ${sign}.\nWith result ${result}\nReason: ${reason}`
-
-                await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
-            })
-        }
-
         if (!SYNCED) {
-            const blocks = `\nBlock height ${blockchainLength} of ${highestUnvalidatedBlockLengthReceived}`
+            const blocks = `\nBlock height ${blockchainLength} of ${highestUnvalidatedBlockLengthReceived ? highestUnvalidatedBlockLengthReceived : highestBlockLengthReceived}`
             const message = `Node not synced, status ${syncStatus} ${syncStatus === 'CATCHUP' ? blocks : ''} !${sign}`
 
-            await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
+            sendAlert("NOT-SYNCED", message)
 
             OK_SYNCED = false
 
@@ -78,93 +69,98 @@ export const processAlerter = async (config) => {
             const DIFF_UNVALIDATED = uHeight - nHeight
             let message
 
-            if (DIFF_MAX >= blockDiff) {
-                OK_MAX = false
-                message = `Difference block height detected!\nHeight ${DIFF_MAX > 0 ? 'less' : 'more'} than max block length!\nDifference: ${Math.abs(DIFF_MAX)}\nNode: ${nHeight}\nMax: ${mHeight} ${sign}`
-                await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
+            if (+peers <= 0) {
+                message = `No peers! ${sign}`
+                sendAlert("PEERS", message)
+            }
+
+            if (mHeight && DIFF_MAX >= blockDiff) {
+                message = `MAX Fork detected!\nDifference: ${Math.abs(DIFF_MAX)}\nHeight: ${nHeight}\nMax: ${mHeight} ${sign}`
+                sendAlert("MAX", message)
 
                 if (restartStateSyncedRules.includes("MAX")) {
-                    if (globalThis.restartTimerMax / 60000 >= restartAfterMax) {
-                        globalThis.restartTimerMax = 0
+                    if (DIFF_MAX >= blockDiffToRestart) {
                         if (canRestartNode && restartCmd) {
-                            restart('Difference to max block length!')
+                            restart('MAX Fork!')
                         }
-                    } else {
-                        globalThis.restartTimerMax += alertInterval
                     }
                 }
             }
 
-            if (DIFF_UNVALIDATED >= blockDiff) {
-                OK_UNV = false
+            if (mHeight && DIFF_MAX < 0 && Math.abs(DIFF_MAX) >= blockDiff) {
+                message = `MAX Forward Fork detected!\nDifference: ${Math.abs(DIFF_MAX)}\nHeight: ${nHeight}\nMax: ${mHeight} ${sign}`
+                sendAlert("FORWARD-MAX", message)
+
+                if (restartStateSyncedRules.includes("FORWARD-MAX")) {
+                    if (DIFF_MAX >= blockDiffToRestart) {
+                        if (canRestartNode && restartCmd) {
+                            restart('MAX Forward Fork!')
+                        }
+                    }
+                }
+            }
+
+            if (uHeight && DIFF_UNVALIDATED >= blockDiff) {
                 message = `Fork detected!\nHeight ${DIFF_UNVALIDATED > 0 ? 'less' : 'more'} than unvalidated block length!\nDifference: ${Math.abs(DIFF_UNVALIDATED)}\nNode: ${nHeight}\nUnvalidated: ${uHeight} ${sign}`
-                await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
+                sendAlert("FORK", message)
 
-                if (restartStateSyncedRules.includes("UNV")) {
-                    if (globalThis.restartTimerUnv / 60000 >= restartAfterUnv) {
-                        globalThis.restartTimerUnv = 0
+                if (restartStateSyncedRules.includes("FORK")) {
+                    if (DIFF_UNVALIDATED >= blockDiffToRestart) {
                         if (canRestartNode && restartCmd) {
-                            restart('Node in fork!')
+                            restart('Node in Fork!')
                         }
-                    } else {
-                        globalThis.restartTimerUnv += alertInterval
                     }
                 }
             }
 
-            if (DIFF_UNVALIDATED < 0 && Math.abs(DIFF_UNVALIDATED) >= blockDiff) {
-                OK_UNV = false
+            if (uHeight && DIFF_UNVALIDATED < 0 && Math.abs(DIFF_UNVALIDATED) >= blockDiff) {
                 message = `Forward fork detected!\nHeight ${DIFF_UNVALIDATED > 0 ? 'less' : 'more'} than unvalidated block length!\nDifference: ${Math.abs(DIFF_UNVALIDATED)}\nNode: ${nHeight}\nUnvalidated: ${uHeight} ${sign}`
-                await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
+                sendAlert("FORWARD-FORK", message)
 
-                if (restartStateSyncedRules.includes("UNV")) {
-                    if (globalThis.restartTimerUnv / 60000 >= restartAfterUnv) {
-                        globalThis.restartTimerUnv = 0
+                if (restartStateSyncedRules.includes("FORWARD-FORK")) {
+                    if (Math.abs(DIFF_UNVALIDATED) >= blockDiffToRestart) {
                         if (canRestartNode && restartCmd) {
-                            restart('Node in forward fork!')
+                            restart('Node in Forward Fork!')
                         }
-                    } else {
-                        globalThis.restartTimerUnv += alertInterval
                     }
                 }
             }
 
-            if (globalThis.controlCounter % 2 === 0 && globalThis.currentControlHeight !== 0) {
-                if (nHeight - globalThis.currentControlHeight === 0) {
-                    OK_PREV = false
+            if (globalThis.currentControlHeight !== nHeight) {
+                globalThis.hangTimer = 0
+                globalThis.currentControlHeight = nHeight
+                deleteFromArray(globalThis.nodeInfo.health, "HANG")
+            }
+
+            if (globalThis.hangTimer >= hangIntervalAlert) {
+                const DIFF_HANG = nHeight - globalThis.currentControlHeight === 0
+
+                if (globalThis.currentControlHeight && DIFF_HANG) {
+                    if (!globalThis.nodeInfo.health.includes("HANG")) {
+                        globalThis.nodeInfo.health.push("HANG")
+                    }
                     message = `Hanging node detected!\nBlock height ${nHeight} equal to previous value! ${sign}`
-                    await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
-
-                    if (restartStateSyncedRules.includes("PREV")) {
-                        if (globalThis.restartTimerPrev >= restartAfterPrev) {
-                            globalThis.restartTimerPrev = 0
-                            if (canRestartNode && restartCmd) {
-                                restart('Long time equal to previous length!')
-                            }
-                        } else {
-                            globalThis.restartTimerPrev++
-                        }
-                    }
-                } else {
-                    globalThis.currentControlHeight = globalThis.currentHeight
+                    sendAlert("HANG", message)
                 }
             }
 
-            globalThis.currentHeight = +blockchainLength
-            if (globalThis.currentControlHeight === 0) {
-                globalThis.currentControlHeight = globalThis.currentHeight
+            if (globalThis.hangTimer >= hangInterval) {
+                const DIFF_HANG = nHeight - globalThis.currentControlHeight === 0
+
+                if (globalThis.currentControlHeight && DIFF_HANG) {
+                    if (restartStateSyncedRules.includes("HANG") && (canRestartNode && restartCmd)) {
+                        restart('Hanging node!')
+                    }
+                }
+
+                globalThis.hangTimer = 0
+                globalThis.currentControlHeight = nHeight
+                deleteFromArray(globalThis.nodeInfo.health, "HANG")
             }
+
+            globalThis.hangTimer += alertInterval
         }
 
-        if (globalThis.controlCounter === Number.MAX_SAFE_INTEGER) {
-            globalThis.controlCounter = 1
-        } else {
-            globalThis.controlCounter++
-        }
-
-        if (OK_MAX) globalThis.restartTimerMax = 0
-        if (OK_UNV) globalThis.restartTimerUnv = 0
-        if (OK_PREV) globalThis.restartTimerPrev = 0
         if (OK_SYNCED) globalThis.restartTimerNotSynced = 0
 
         if (SYNCED && globalThis.currentHeight > 0 && observeExplorer) {
@@ -175,12 +171,15 @@ export const processAlerter = async (config) => {
                 if (Math.abs(DIFF_EXPLORER) >= blockDiff) {
                     message = DIFF_EXPLORER < 0 ? `Node lags behind the Explorer in block height.` : `Node leads the Explorer by block height.`
                     message += `\nDifference: ${DIFF_EXPLORER}\nNode: ${globalThis.currentHeight}\nExplorer: ${explorer.blockchainLength}${sign}`
-                    await telegram(message, {token: telegramToken, recipients: telegramChatIDAlert})
+                    sendAlert("EXPLORER", message)
                 }
             }
         }
+
+        reload = alertInterval
+    } else {
+        reload = 5000
     }
 
-    setTimeout(() => processAlerter(config), alertInterval)
+    setTimeout(processAlerter, reload)
 }
-

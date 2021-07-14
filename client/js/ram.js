@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 import {getFakeData} from "./helpers/get-fake-data";
 import {defaultChartConfig, defaultGaugeConfig} from "./helpers/chart-config";
@@ -6,11 +5,12 @@ import {imgOk, imgStop} from "./helpers/const";
 
 let memoryGauge, memoryUsageChart
 
-export const processMemInfo = async () => {
+export const processRamInfo = async () => {
     const elLog = $("#log-mem")
     elLog.html(imgStop)
     const chartOptions = {
         ...defaultChartConfig,
+        height: 120,
         legend: {
             position: 'top-left',
             vertical: true,
@@ -60,12 +60,8 @@ export const processMemInfo = async () => {
             }
         },
         arrows: false,
-        padding: {
-            left: 5,
-            top: 5,
-            right: 1,
-            bottom: 5
-        },
+        padding: 1,
+        margin: 0,
         boundaries: {
             maxY: 0,
             minY: 0
@@ -128,5 +124,5 @@ export const processMemInfo = async () => {
         // console.log("Mem (re)loaded!")
     }
 
-    setTimeout(() => processMemInfo(), globalThis.config.intervals.mem)
+    setTimeout(processRamInfo, globalThis.config.intervals.resources)
 }

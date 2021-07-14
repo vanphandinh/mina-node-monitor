@@ -1,9 +1,9 @@
-import {telegram} from "./telegram.mjs"
 import {hostname} from "os"
+import {sendAlert} from "./helpers.mjs"
 
-export const processHello = async (config) => {
-    const {telegramToken, telegramChatID, host} = config
-    const message = `Node says hello from\nHost: ${hostname()}!\nIP ${host.split(":")[0]}`
+export const processHello = () => {
+    const {host} = globalThis.config
+    const message = `Node says hello from ${hostname()} (${host.split(":")[0]})`
 
-    await telegram(message, {token: telegramToken, recipients: telegramChatID})
+    sendAlert("HELLO", message)
 }

@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 import {getFakeTriplets} from "./helpers/get-fake-data"
 import {defaultChartConfig} from "./helpers/chart-config"
@@ -10,14 +9,28 @@ let START_NODE_MON = datetime()
 let START_NODE_POINTS = 200
 let peersChart
 
-const getNodeStatus = async () => await getInfo('node-status')
-const getExplorerSummary = async () => await getInfo('explorer')
-const getBalance = async () => await getInfo('balance')
+const processHealth = async () => {
+    let health = await getInfo('health')
+    const el = $("#status-group")
+    const elHealth = $("#node-health")
+
+    el.removeClass("border bd-red")
+    if (!health || health.length) {
+        el.addClass("border bd-red")
+    }
+
+    if (health && health.length) {
+        elHealth.html($("<span>").addClass("fg-red").html(health.join(" ")))
+    }
+    if (health && health.length === 0) {
+        elHealth.html($("<span>").addClass("fg-green").html("OK"))
+    }
+}
 
 const processBalance = async () => {
     const {currency = 'usd'} = globalThis.config.price
 
-    let status = await getBalance()
+    let status = await getInfo('balance')
 
     if (status && status.data && status.data.account && status.data.account.balance) {
         const {total, liquid} = status.data.account.balance
@@ -35,21 +48,19 @@ const processExplorerSummary = async () => {
     const elLog = $("#log-explorer")
     elLog.html(imgStop)
 
-    let explorerSummary = await getExplorerSummary()
+    let explorerSummary = await getInfo('explorer')
 
     if (!explorerSummary || isNaN(explorerSummary.blockchainLength)) {
         return
     }
 
     const {blockchainLength} = explorerSummary
-    const elBlockHeightPanel = $("#block-height").closest('.panel')
     const elExplorerHeight = $("#explorer-height")
 
-    elExplorerHeight.text(blockchainLength)
+    elExplorerHeight.removeClass('fg-red ani-flash').text(blockchainLength)
 
-    elBlockHeightPanel.removeClass('explorer-alert')
     if (Math.abs(+globalThis.blockchainLength - +blockchainLength) >= 2) {
-        elBlockHeightPanel.addClass('explorer-alert')
+        elExplorerHeight.addClass('fg-red ani-flash')
     }
     elLog.html(imgOk)
 }
@@ -109,7 +120,7 @@ export const processNodeStatus = async () => {
                 bottom: 10
             },
             height: 160,
-            onDrawLabelX: (v) => {
+            onDrawLabelX: () => {
                 return ""
             },
             onDrawLabelY: (v) => {
@@ -118,30 +129,15 @@ export const processNodeStatus = async () => {
         })
     }
 
-    let status = await getNodeStatus()
-    let reload = globalThis.config.intervals.node
-    const UNKNOWN = "UNKNOWN"
+    let status = await getInfo('node-status')
+    let reload = globalThis.config.intervals.daemon
     const secondsInEpoch = 1285200000 / 1000
     const genesisStart = "2021-03-17 02:00:00.000000+02:00"
     const partLength = 7
 
 
-    const elements = [
-        "peers-count",
-        "block-height",
-        "max-block",
-        "max-unvalidated",
-        "node-status",
-        "network-status",
-        "node-uptime",
-        "block-producer",
-        "block-producer-full",
-        "snark-worker",
-        "snark-worker-full",
-        "snark-worker-fee"
-    ]
-
-    elements.forEach( id => $("#"+id).html(UNKNOWN))
+    ;["peers-count", "block-height", "max-block", "max-unvalidated", "snark-worker-fee"].forEach( id => $("#"+id).text(`0`))
+    ;["node-status", "network-status", "node-uptime", "block-producer", "snark-worker"].forEach( id => $("#"+id).text(`NONE`))
 
     if (status && status.data && status.data.daemonStatus) {
         globalThis.blockchainLength = 0
@@ -231,14 +227,19 @@ export const processNodeStatus = async () => {
         elEndOfEpoch.html(`${epochDays} ${epochHours} ${epochMinutes}`)
         elEpochDuration.html(`${epochDays} ${epochHours} ${epochMinutes}`)
 
-        // globalThis.marques[1] = `epoch will end in ${epochDays} ${epochHours} ${epochMinutes}`
-
-
         // block height
         globalThis.blockchainLength = blockchainLength
-        elBlockHeight.text(blockchainLength)
-        elMaxBlock.text(highestBlockLengthReceived)
-        elMaxUnvalidated.text(highestUnvalidatedBlockLengthReceived)
+        elBlockHeight.html(blockchainLength ? blockchainLength : `<span class="mif-infinite"></span>`)
+
+        elMaxBlock.removeClass("fg-red ani-flash").text(highestBlockLengthReceived)
+        if (+highestBlockLengthReceived !== +blockchainLength) {
+            elMaxBlock.addClass("fg-red ani-flash")
+        }
+
+        elMaxUnvalidated.removeClass("fg-red ani-flash").text(highestUnvalidatedBlockLengthReceived)
+        if (+highestUnvalidatedBlockLengthReceived !== +blockchainLength) {
+            elMaxUnvalidated.addClass("fg-red ani-flash")
+        }
 
         globalThis.blockHeight = blockchainLength
 
@@ -273,7 +274,7 @@ export const processNodeStatus = async () => {
         const noBlockProducer = 'No running block producer'
         const noSnarkWorker = 'No running snark worker'
         const blockProducerName = blockProductionKeys.length ? blockProductionKeys[0] : ""
-        const snarkWorkerName = snarkWorker ?? ""
+        const snarkWorkerName = snarkWorker ? snarkWorker : ""
         const shortBlockProducerName = blockProducerName.substring(0, partLength) + ' ... ' + blockProducerName.substring(blockProducerName.length - partLength)
         const shortSnarkWorkerName = snarkWorkerName.substring(0, partLength) + ' ... ' + snarkWorkerName.substring(snarkWorkerName.length - partLength)
         const snarkWorkerFeeValue = !snarkWorkFee ? '' : ` [ <span class="fg-gray">fee</span> ${(snarkWorkFee / 10**9).toFixed(4)} ]`
@@ -287,11 +288,12 @@ export const processNodeStatus = async () => {
 
         setTimeout(() => processExplorerSummary(), 0)
         setTimeout(() => processBalance(), 0)
+        setTimeout(() => processHealth(), 0)
     } else {
         reload = 5000
     }
 
-    setTimeout(() => processNodeStatus(), reload)
+    setTimeout(processNodeStatus, reload)
 }
 
 $("#node-version, #block-producer, #snark-worker").on("click", function(){

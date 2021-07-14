@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 
 export const processConsensus = async () => {
@@ -23,5 +22,5 @@ export const processConsensus = async () => {
         progress.buff(epochDurationProgress)
     }
 
-    setTimeout( () => processConsensus(), config.intervals.node)
+    setTimeout(processConsensus, config.intervals.daemon)
 }

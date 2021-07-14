@@ -18,3 +18,4 @@ server/config.mjs
 server/config.json
 server/cert
 .DS_Store
+package-lock.json

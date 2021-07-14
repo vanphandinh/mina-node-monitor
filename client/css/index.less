@@ -10,18 +10,31 @@
   --info-color2: #1ba1e2;
   --info-color3: #ffdb10;
   --fill-color: rgba(125, 195, 123, .3);
+  --color-neutral: #adbaa9;
+  --color-success: #7dc37b;
+  --color-warning: #ff8330;
+  --color-alert: #ea0b0b;
+  --color-info: #1ba1e2;
+}
+
+.label-neutral {
+  color: var(--color-neutral);
 }
 
 .label-success {
-  color: #7dc37b;
+  color: var(--color-success);
 }
 
 .label-warning {
-  color: #ff8330;
+  color: var(--color-warning);
 }
 
 .label-alert {
-  color: #ea0b0b;
+  color: var(--color-alert);
+}
+
+.label-info {
+  color: var(--color-info);
 }
 
 .fg-normal {
@@ -86,10 +99,6 @@ hr {
   background: var(--border-color);
 }
 
-#max-block {color: var(--info-color3);}
-#max-unvalidated {color: var(--alert-color);}
-#explorer-height {color: var(--info-color2);}
-
 .panel {
   height: 100%;
   background: var(--panel-background);
@@ -118,7 +127,7 @@ hr {
     }
   }
 
-  &.alert, &.warning, &.catchup {
+  &.alert, &.warning, &.catchup, &.success {
     background: var(--alert-color);
     color: var(--accent-color);
 
@@ -126,8 +135,8 @@ hr {
       border: none;
       color: var(--accent-color);
     }
-    #node-status {
-      color: var(--accent-color);
+    #node-status, #block-height {
+      color: var(--accent-color)!important;
     }
     #max-block, #max-unvalidated, #explorer-height {
       color: var(--accent-color);
@@ -140,20 +149,31 @@ hr {
   &.catchup {
     background: var(--info-color2);
   }
+
+  &.success {
+    background: var(--info-color1);
+  }
 }
 
-#hostname, #node-status, #block-height, #node-uptime, #epoch-number, #slot-number, #balance-total {
-  font-size: 28px;
-  font-weight: bold;
+#hostname,
+#node-status,
+#block-height,
+#node-uptime,
+#epoch-number,
+#slot-number,
+#balance-total,
+#blocks-in-epoch,
+#rewards-in-epoch,
+#delegators-total,
+#delegators-total-next,
+#sidecar-position {
+  font-size: 24px;
+  font-weight: 400;
   line-height: 1;
 }
 
 #node-uptime {
   white-space: nowrap;
-}
-
-#block-producer-full, #snark-worker-full {
-  font-size: .9em;
 }
 
 .info-table {
@@ -182,10 +202,10 @@ hr {
   }
 }
 .progress-back {
-  background: #1e2228;
+  background: var(--info-color1);
 }
 .progress-bar {
-  background: var(--info-color1)!important;
+  background: #1e2228!important;
 }
 
 #ip-address, #bind-ip, #p2p-port, #client-port {
@@ -202,13 +222,14 @@ canvas {
 .catchup-process-right, .catchup-process-left {
   position: absolute;
   z-index: 1;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: 20px;
+  right: 10px;
+  bottom: 20px;
   overflow: hidden;
   width: 20px;
   display: none;
   justify-content: center;
+  color: #fff;
 
   span {
     position: absolute;
@@ -219,14 +240,14 @@ canvas {
 
 .catchup-process-left {
   right: auto;
-  left: 0;
+  left: 10px;
 }
 
-.panel.catchup {
-  .catchup-process-right, .catchup-process-left {
+.panel.catchup ~ .catchup-process-right,
+.panel.catchup ~ .catchup-process-left {
     display: flex;
-  }
 }
+
 
 @keyframes catchup {
   0% {
@@ -276,7 +297,76 @@ a {
   position: absolute;
   top: 0;
   right: 0;
-  font-size: 38px;
+  font-size: 28px;
+  border-radius: 6px;
+
+  #cpu-temp-avg, #cpu-temp-max {
+    text-align: right;
+    margin: 0;
+    padding: 0;
+    line-height: 1;
+  }
+
+  #cpu-temp-max {
+    font-size: .5em;
+    margin-top: 4px;
+    padding-top: 4px;
+  }
+}
+
+#cpu-temp, #cpu-cores-count, #ram-total-wrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  z-index: 1;
+}
+
+#cpu-cores-count {
+  left: 0;
+  right: auto;
+  #cpu-cores, #cpu-threads {
+    line-height: 1;
+    width: 70%;
+    text-align: center;
+  }
+  #cpu-threads {
+    font-size: .5em
+  }
+}
+
+#ram-total-wrapper {
+  #ram-total {
+    line-height: 1;
+  }
+}
+
+.panel {
+  border-radius: 6px;
+}
+
+#position-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: .8em;
+}
+
+#price-arrow {
+  text-align: center;
+  [class*=mif-arrow-] {
+    margin-left: 4px;
+  }
+}
+
+#price-change-arrow {
 }
 
 @import "light";

@@ -1,3 +1,21 @@
+### 1.1.1
++ [x] New algorithm to check node hanging
++ [x] New alert for `NO PEERS` state
++ [x] `health` object for node to display node health on client (`OK`, `FORK`, `UNKNOWN`, `NO PEERS`, `NOT-SYNCED`).
++ [x] Many changes for improving work of the server-side
++ [x] Alert and restart node if `Critical memory usage` state detected
++ [x] Can be used for `Mina Monitor Cluster`
+
+### 1.0.5 -> 1.1.0
++ [x] Alert to Discord
++ [x] Define which alerts will send to telegram or discord  
++ [x] Reorder blocks with `config.blocks`
++ [x] Optimized config files. Configs changed! Read `readme` and `changeloag`
++ [x] New visual (soft changes)
++ [x] Changed rules to restart, now node will restart if value in block difference reached
++ [x] Send price info to telegram/discord
++ [x] Request to `COINGECKO` moved from client to server
+
 ### 1.0.4
 + [x] Delegations info
 + [x] Rewards in current epoch info

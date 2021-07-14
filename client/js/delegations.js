@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 
 export const processDelegations = async () => {
@@ -14,5 +13,5 @@ export const processDelegations = async () => {
         $("#delegators-stack-next").text((next.stake).format(2, null, ",", "."))
     }
 
-    setTimeout(()=>processDelegations(), 60000)
+    setTimeout(processDelegations, 60000)
 }

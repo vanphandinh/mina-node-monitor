@@ -1,4 +1,5 @@
 import fetch from "node-fetch"
+import {processAlerter} from "./alerter.mjs";
 
 const queryNodeStatus = `
 query MyQuery {
@@ -134,7 +135,7 @@ async function fetchGraphQL(addr, query, variables = {}) {
             }
         )
 
-        return result.ok ? await result.json() : {}
+        return result.ok ? await result.json() : null
     } catch (error) {
         console.error("The Request to GraphQL war aborted! Reason: " + error.name)
         return null
@@ -143,13 +144,16 @@ async function fetchGraphQL(addr, query, variables = {}) {
 
 async function getBlockSpeed(graphql, length){
     let blocks = await fetchGraphQL(graphql, queryBlockSpeed, {maxLength: length})
-    if (!blocks && !blocks.data) {
+    if (!blocks || !blocks.data) {
         return 0
     }
+
     const {bestChain: chain = []} = blocks.data
-    if (!chain.length) {
+
+    if (!chain || !chain.length) {
         return 0
     }
+
     let speed, begin, end
     begin = +chain[0]["protocolState"]["blockchainState"]["date"]
     end = +chain[chain.length - 1]["protocolState"]["blockchainState"]["date"]
@@ -157,14 +161,65 @@ async function getBlockSpeed(graphql, length){
     return speed
 }
 
-export const nodeInfo = async (obj, config) => {
-    const {graphql, publicKey, publicKeyDelegators} = config
+export const processCollectNodeInfo = async () => {
+    const {
+        graphql,
+        publicKey,
+        blockSpeedDistance = 10,
+        nodeInfoCollectInterval = 30000,
+        blockDiff = 2
+    } = globalThis.config
 
-    switch (obj) {
-        case 'node-status': return await fetchGraphQL(graphql, queryNodeStatus)
-        case 'balance': return publicKey ? await fetchGraphQL(graphql, queryBalance, {publicKey}) : 0
-        case 'blockchain': return await fetchGraphQL(graphql, queryBlockChain)
-        case 'consensus': return await fetchGraphQL(graphql, queryConsensus)
-        case 'block-speed': return await getBlockSpeed(graphql, 10)
+    let nodeStatus = await fetchGraphQL(graphql, queryNodeStatus)
+    let balance = publicKey ? await fetchGraphQL(graphql, queryBalance, {publicKey}) : 0
+    let blockchain = await fetchGraphQL(graphql, queryBlockChain)
+    let consensus = await fetchGraphQL(graphql, queryConsensus)
+    let blockSpeed = await getBlockSpeed(graphql, blockSpeedDistance)
+    let health = []
+
+    if (globalThis.nodeInfo.health.includes("HANG")) {
+        health.push("HANG")
     }
+
+    if (nodeStatus && nodeStatus.data && nodeStatus.data.daemonStatus) {
+        const {
+            syncStatus,
+            peers = 0,
+            blockchainLength: blockHeight = 0,
+            highestBlockLengthReceived: maxHeight = 0,
+            highestUnvalidatedBlockLengthReceived: unvHeight = 0,
+        } = nodeStatus.data.daemonStatus
+
+        if (syncStatus === "SYNCED") {
+            if (peers <= 0) {
+                health.push("NO PEERS")
+            }
+
+            if (peers === 0) {
+                health.push("NO-PEERS")
+            }
+
+            if (blockHeight) {
+                if (
+                    (maxHeight && Math.abs(blockHeight - maxHeight) >= blockDiff) ||
+                    (unvHeight && Math.abs(blockHeight - unvHeight) >= blockDiff)
+                ) {
+                    health.push("FORK")
+                }
+            }
+        } else {
+            health.push("NON-SYNCED")
+        }
+    } else {
+        health.push("UNKNOWN")
+    }
+
+    globalThis.nodeInfo.nodeStatus = nodeStatus
+    globalThis.nodeInfo.balance = balance
+    globalThis.nodeInfo.blockchain = blockchain
+    globalThis.nodeInfo.consensus = consensus
+    globalThis.nodeInfo.blockSpeed = blockSpeed
+    globalThis.nodeInfo.health = health
+
+    setTimeout(processCollectNodeInfo, nodeInfoCollectInterval)
 }

@@ -1,3 +1,46 @@
+### 1.1.2
++ [x] Fixed memory leaks for setTimeout circular links
+  
++ [x] Server: added `process.memory` to get mem request 
+
+### 1.1.1
++ [x] Server: improved alerts for `FORK` states
++ [x] Server: added alert for `NO PEERS` state
++ [x] Server: node info now stored into local object every time interval defined in `consfig.nodeInfoCollectInterval`
++ [x] Server: added config property `config.blockSpeedDistance` with default value `10` to calculate blockchain speed
++ [x] Server: information about mina now return from stored object
++ [x] Server: added request for node health, request return empty array if `OK` or filled array with critical states
++ [x] Server: alerter now use stored node info
++ [x] Server: improved alerts for `HANG` state
++ [x] Server: added config properties `hangInterval`, `hangIntervalAlert`, config option `restartAfterPrev` is deprecated, use `hangInterval`
++ [x] Server: added config options `memAlert`, `memRestart` as a percent value (0 - 100)
+
++ [x] Client: added reaction for node health request
++ [x] Client: Node health now is displaying in sync status block
+
+### 1.0.5 -> 1.1.0
++ [x] Server: fixed uptime sender for using `publicKeyDelegators`
++ [x] Server: fixed alerter module for forward for when unvalidated length is 0
++ [x] Server: changed possible values for `config.restartStateSyncedRules` to `["MAX", "FORK", "FORWARD-FORK", "HANG"]`
++ [x] Server: config props `restartAfterMax`, `restartAfterUnv` is deprecated, use `blockDiffToRestart`
++ [x] Server: added alert to DISCORD (used **discord webhooks**)
++ [x] Server: added config props `alertToTelegram`, `alertToDiscord`. Possible values: `["NOT-SYNCED", "MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE"]`
++ [x] Server: moved request to `coingecko` from client to server
++ [x] Server: added `config.price` parameter
+
++ [x] Client: added flashing for `maxHeight`, `unvalidateHeight`, `explorerHeight` when difference present with the current height
++ [x] Client: high/low price now showing **all-time** high/low  
++ [x] Client: added price change in currency, added colored arrow for indicate price change  
++ [x] Client: next `config` props deprecated and not used: `cpu`, `net`, `mem`, `blockchain`, `node`, `info`, `time`
++ [x] Client: added new config props: `system` (server info and time), `resources` (cpu, net, ram), `daemon` (data from Mina GraphQL: node info, blockchain status)
++ [x] Client: changed CPU temperature view
++ [x] Client: changed block height view
++ [x] Client: added border radius to panels 
++ [x] Client: progress bar for epoch now showing time left  
++ [x] Client: added config check. If config contains errors, Monitor puts to the console error message
++ [x] Client: reorder blocks with `config.blocks` option
++ [x] Client: optimized build scripts. (**Important**, required `npm i`)
+
 ### 1.0.4
 + [x] Server: added request for delegators
 + [x] Server: added new config props `publicKeyDelegators`

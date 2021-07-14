@@ -7,11 +7,27 @@
 Монитор представляет собой `клиент-серверное` приложение для визуального представления текущего состояния узла и сигнализации об ошибках в его работе.
 
 ## Основные возможности
-1. Отслеживание состояния узла в реальном времени
-2. Показ 12+ параметров: статус, время работы, баланс и т.д. ...
-3. Отображение текущей загрузки сети, процессора, памяти с использованием графиков
-4. Мониторинг `здоровья` узла, если узел рассинхронизирован с основной сетью и/или находится в состоянии, отличном от SYNCED, монитор отправляет об этом сообщение вам в телеграм
-5. Перезапуск узла, если такое действие разрешено
+
+**Monitor Client:**
+- [x] Display of the main indicators of the Mina network (Block height, uptime, epoch and slot info)
+- [x] Displaying the status of the node daemon (SYNCED, CATCHUP, BOOTSTRAP, ...)
+- [x] Displaying the health of node (OK, Fork, Hanging)
+- [x] Displaying the server resources consumed by the node (CPU, RAM, NETWORK)
+- [x] Displaying the balance of the specified address and the value of this balance in different currencies
+- [x] Displaying information about delegations to the specified validator address
+- [x] Displaying information about blocks won and rewards received in the current era
+- [x] Displays general information about the site server
+- [x] Convenient live graphs for displaying consumed resources
+- [x] Responsive interface (It is comfortable to look at both PC and phone and tablet)
+
+**Monitor Server Side:**
+- [x] Monitoring node health
+- [x] Identification of critical node states (fork, forward fork, node freeze, lag/lead Mina Explorer)
+- [x] Determining the Synchronization State of a Node
+- [x] Automatic reboot of the node in case of critical state detection
+- [x] Sending messages about the critical state of the node in Telegram and/or Discord
+- [x] Sending the current balance of the specified address to Telegram and/or Discord
+- [x] Sending Mina's cost to Telegram and/or Discord
 
 #### Программный стек:
 - сервер - JavaScript
@@ -59,19 +75,33 @@ npm i
     "showIp": true,
     "useHttps": false,
     "intervals": {
-        "info": 60000,
-        "time": 60000,
-        "blockchain": 30000,
-        "node": 30000,
-        "net": 2000,
-        "mem": 2000,
-        "cpu": 2000,
+        "system": 60000,
+        "daemon": 30000,
+        "resources": 2000,
         "uptime": 600000
     },
     "price": {
         "currency": "usd",
         "update_interval": 60000
     },
+    "blocks": [
+        "hostname",
+        "status",
+        "blockheight",
+        "uptime",
+        "balance",
+        "delegation",
+        "rewards",
+        "epoch",
+        "ram-chart",
+        "ram-usage",
+        "cpu-usage",
+        "cpu-load",
+        "network",
+        "peers",
+        "addresses",
+        "queries"
+    ],
     "theme": "auto",
     "useProxy": false,
     "proxy": "https://server/proxy.php"
@@ -89,17 +119,14 @@ npm i
 
 **Интервалы:**
 
-- `info` - основная информация о сервер (ОС, модель процессора)
-- `time` - текущее время на сервере и его аптайм
-- `blockchain` - всего монет, информация о текущем слоте и эпохе, получение из GraphQL узла
-- `node` - интервал получения основной информации из GraphQL узла
-- `net` - интервал обновления информации о загрузке сети: speed, connections
-- `mem` - интервал обновления информации о загрузке оперативной памяти сервера
-- `cpu` - интервал обновления информации о загрузке CPU(s)
+- `system` - general information about server and server time
+- `daemon` - total currency, slot info, and epoch, node status
+- `resources` - net, cpu, and ram information
 - `uptime` - interval for retrieve information about sidecar calculating server uptime
-- `theme` - default `auto` (dark\light mode dependence from os), value can be `dark`, `light`
 
-Section for using proxy (читайте про прокси-сервер ниже)
+Parameter `theme` - default `auto` (dark\light mode dependence from os), value can be `dark`, `light`
+
+Section for using proxy (read about proxy below)
 - `useProxy` - use or not proxy server
 - `proxy` - proxy server address
 
@@ -115,6 +142,8 @@ For `price.currency` you can use one of the next values:
 "bits",  "sats"
 ```
 
+Parameter `blocks` - determines the order and display of blocks
+
 #### Конфигурационный файл для сервера 
 Создайте в папке `server` файл `config.json`. Ниже представлен полный пример конфигурационного файла с описанием каждой опции.
 ```json
@@ -124,13 +153,12 @@ For `price.currency` you can use one of the next values:
     "telegramToken": "XXXXXXXXXX:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "telegramChatID": "XXXXXXXXX",
     "telegramChatIDAlert": "XXXXXXXXX",
+    "discordWebHook": "https://ptb.discord.com/api/webhooks/...",
     "balanceSendInterval": 300000,
     "alertInterval": 300000,
     "blockDiff": 2,
+    "blockDiffToRestart": 4,
     "canRestartNode": true,
-    "restartAfterMax": 30,
-    "restartAfterUnv": 30,
-    "restartAfterPrev": 4,
     "restartAfterNotSynced": 30,
     "restartCmd": "systemctl --user restart mina",
     "host": "you_ip_address:port",
@@ -141,57 +169,108 @@ For `price.currency` you can use one of the next values:
     },
     "observeExplorer": true,
     "restartStateException": ["BOOTSTRAP"],
-    "restartStateSyncedRules": ["MAX", "UNV", "PREV"]
+    "restartStateSyncedRules": ["MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG"],
+    "alertToTelegram": ["HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS"],
+    "alertToDiscord": ["HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS"],
+    "price": {
+        "currency": "usd",
+        "updateInterval": 60000,
+        "interval": 3600000,
+        "targets": ["TELEGRAM", "DISCORD"]
+    },
+    "blockSpeedDistance": 10,
+    "nodeInfoCollectInterval": 30000,
+    "hangInterval": 1800000,
+    "hangIntervalAlert": 900000,
+    "memAlert": 90,
+    "memRestart": 95
 }
 ```
 
 where
 
-- `publicKey` - Ключ, для которого будет запрашиваться баланс
-- `telegramToken` - Токен вашего telegram бота (как создать и настроить бота ищите в Гугле, там все есть)
-- `telegramChatID` - Идентификаторы чатов получателей информации о состоянии баланса, можно указать несколько через запятую
-- `telegramChatIDAlert` - Идентификаторы чатов получателей информации об ошибках узла (рассинхронизация, выход из статуса SYNCED), можно указать несколько через запятую
-- `balanceSendInterval` - Интервал с которым будет отправляться информация о текущем балансе в телеграм
-- `alertInterval` - Интервал с которым будет отправляться информация об ошибках ноды в телеграм
-- `blockDiff` - Разница в высоте блоков с [MinaExplorer](https://minaexplorer.com/) при котором будет считаться, что узел рассихронизирован
-- `host` - IP и PORT на котором будет работать сервер монитора
-- `graphql` - Адрес на котором работает GraphQL сервер узла
-- `canRestartNode` - Если значение этого ключа **true**, сервер может перезапустить узел мины
-- `restartAfterMax` - value in minutes, if node synced and height is difference to max block length, node will restart after this interval
-- `restartAfterUnv` - value in minutes, if node synced and height is difference to unvalidated block height, node will restart after this interval
+- `publicKey` - node key for getting balance
+- `publicKeyDelegators` - node key for getting delegations
+- `telegramToken` - your telegram bot token
+- `telegramChatID` - chat id(s) for balance info, if there are several, must be separated by commas
+- `telegramChatIDAlert` - chat id(s) for alerting, if there are several, must be separated by commas
+- `balanceSendInterval` - the interval with which the server will send the current balance in telegrams
+- `alertInterval` - the interval with which the server will check node state and send alerts in telegrams
+- `blockDiff` - difference in blocks with MinaExplorer at which an alert will be sent
+- `blockDiffToRestart` - difference in blocks when Mina will be restarted
+- `host` - IP and PORT on which the server will run
+- `graphql` - Mina node GraphQL address (by default `localhost:3085`)
+- `canRestartNode` - if true, server can restart mina node
 - `restartAfterPrev` - integer value, how many times the alert must go off before the mine is restarted, if node synced and height is equal to previous retrieved height, monitor trigger this alert. Check will process every 2 alerts period. In the time this value **~ restartAfterPrev * alertInterval * 2**.
-- `restartCmd` - Команда для перезапуска узла Mina
+- `restartCmd` - command for restart mina node
 - `https` - contains paths to cert and key to create https server
 - `observeExplorer` - observe Explorer block height and alerts if height difference
 - `restartStateException` - exceptions for states to restart node in non-sync
 - `restartStateSyncedRules` - enabled rules to restart in synced
+- `discordWebHook` - full path to discord webhook
+- `alertToTelegram` - types of alerts which will send to telegram
+- `alertToDiscord` - types of alerts which will send to discord
+- `price` - send price info to telegram/discord
+- `blockSpeedDistance` - distance for block speed calculation
+- `nodeInfoCollectInterval` - interval to collect node info into internal object. Recommended value `30000` (30 sec)
+- `hangIntervalAlert` - time to alert when node hanging
+- `hangInterval` - time to restart when node hanging
+- `memAlert` - value to alert when critical memory usage (0 - 100), 0 - no alert
+- `memRestart` - value to restart when critical memory usage (0 - 100), 0 - no restart
+
+**Values for alerts: `alertToTelegram`, `alertToDiscord`**
+- `HELLO` - node says Hello
+- `NOT-SYNCED` - node not `SYNCED`
+- `MAX` - block height less than max block length
+- `FORWARD-MAX` - block height more than max block length
+- `FORK` - block height less than max unvalidated block length
+- `FORWARD-FORK` - block height more than max unvalidated block length
+- `HANG` - node in hanging state
+- `EXPLORER` block height more or less of Mina Explorer height
+- `RESTART` - alert when restart exec
+- `BALANCE` - send balance
+- `PEERS` - send alert if node don't has a peers
+- `MEM` - send alert if critical memory usage detected
+
+**Values for restart: `restartStateSyncedRules`**
+- `MAX` - restart when height less than max block length
+- `FORWARD-MAX` - restart when height more than max block length
+- `FORK` - restart when height less than max unvalidated block length
+- `FORWARD-FORK` - restart when height more than max unvalidated block length
+- `HANG` - restart hanging detected
+
+**Alert and Restart when critical memory usage**
+These rules are controlled by parameters `memAlert` and `memRestart`.
 
 ### Сборка клиентского приложения
 
 Для сборки клиентского приложения выполните команду, указанную ниже:
 
-**Для Windows**
 ```shell
 npm run build
 ```
 
-**Для Linux**
-```shell
-npm run build_x
-```
-
 Теперь папка `dist` содержит скомпилированные файлы клиента. Скопируйте указанные файлы на ваш web server.
 
-Если у вас нет web сервера, вы можете запустить клиента в локальном окружении. Для этого выполните команду:
+### Running client and server locally
 
-**Для Windows**
+#### Client
+
 ```shell
 npm run serve
 ```
-
-**Для Linux**
+or
 ```shell
-npm run serve_x
+npm start
+```
+or
+```shell
+npm run client
+```
+
+#### Server
+```shell
+npm run server
 ```
 
 ### Установка сервера

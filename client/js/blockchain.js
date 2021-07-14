@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 
 export const processBlockchainInfo = async () => {
@@ -24,7 +23,7 @@ export const processBlockchainInfo = async () => {
         $("#slot-since-genesis").text(slotSinceGenesis)
     }
 
-    setTimeout( () => processBlockchainInfo(), globalThis.config.intervals.blockchain )
+    setTimeout(processBlockchainInfo, globalThis.config.intervals.daemon )
 }
 
 export const processBlockSpeed = async () => {
@@ -36,5 +35,5 @@ export const processBlockSpeed = async () => {
         globalThis.blockSpeed = blockSpeed
     }
 
-    setTimeout( () => processBlockSpeed(), blockSpeed ? blockSpeed : 180000 )
+    setTimeout(processBlockSpeed, blockSpeed ? blockSpeed : 180000 )
 }

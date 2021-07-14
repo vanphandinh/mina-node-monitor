@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 
 export const processBlocks = async () => {
@@ -16,5 +15,5 @@ export const processBlocks = async () => {
         }
     }
 
-    if (!globalThis.noSlots) setTimeout(() => processBlocks(), blockSpeed ? blockSpeed : 5000)
+    if (!globalThis.noSlots) setTimeout(processBlocks, blockSpeed ? blockSpeed : 5000)
 }

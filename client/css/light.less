@@ -10,11 +10,36 @@
   --info-color2-light: #1ba1e2;
   --info-color3-light: #ffe725;
   --fill-color-light: rgba(125, 195, 123, .3);
+  --color-neutral: #24292e;
+  --color-success: #7dc37b;
+  --color-warning: #ff8330;
+  --color-alert: #ea0b0b;
+  --color-info: #1ba1e2;
 }
 
 .light-mode {
   background: var(--body-background-light);
   color: var(--text-color-light);
+
+  .label-neutral {
+    color: var(--color-neutral);
+  }
+
+  .label-success {
+    color: var(--color-success);
+  }
+
+  .label-warning {
+    color: var(--color-warning);
+  }
+
+  .label-alert {
+    color: var(--color-alert);
+  }
+
+  .label-info {
+    color: var(--color-info);
+  }
 
   .fg-normal {
     color: var(--text-color-light);
@@ -65,10 +90,6 @@
     background: var(--border-color-light);
   }
 
-  #max-block {color: var(--accent-color-light);}
-  #max-unvalidated {color: var(--alert-color-light);}
-  #explorer-height {color: var(--info-color2-light);}
-
   .panel {
     background: var(--panel-background-light);
     color: var(--text-color-light);
@@ -79,7 +100,7 @@
       color: var(--accent-color-light);
     }
 
-    &.alert, &.warning, &.catchup {
+    &.alert, &.warning, &.catchup, &.success {
       background: var(--alert-color-light);
       color: #fff;
 
@@ -99,6 +120,9 @@
     &.catchup{
       background: var(--info-color2-light);
     }
+    &.success {
+      background: var(--info-color1-light);
+    }
   }
 
   .info-table {
@@ -114,13 +138,13 @@
   }
 
   .progress {
-    border-color: var(--panel-background-light);
+    border-color: var(--panel-background-light)!important;
   }
   .progress-back {
-    background: #c1c1c1;
+    background: var(--info-color1-light)!important;
   }
   .progress-bar {
-    background: var(--info-color1-light);
+    background: #edf0f3!important;
   }
 
   #ip-address, #bind-ip, #p2p-port, #client-port {

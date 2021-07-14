@@ -1,4 +1,3 @@
-import 'regenerator-runtime/runtime' // this required for Parcel
 import {getInfo} from "./helpers/get-info"
 import {getFakeData} from "./helpers/get-fake-data";
 import {defaultChartConfig, defaultGaugeConfig} from "./helpers/chart-config";
@@ -22,11 +21,11 @@ export const processCPUData = async () => {
     }
 
     if (!cpuChart) {
-        cpuChart = chart.areaChart("#cpu-load", [
+        cpuChart = chart.areaChart( "#cpu-load", [
             getFakeData(40)
         ], {
             ...defaultChartConfig,
-            height: 100,
+            height: 110,
             areas: [
                 {
                     name: "CPU usage"
@@ -66,6 +65,7 @@ export const processCPUData = async () => {
                 right: 1,
                 bottom: 1
             },
+            margin: 0,
             boundaries: {
                 maxY: 100,
                 minY: 0
@@ -119,11 +119,13 @@ export const processCPUData = async () => {
         }
 
         $("#loadavg").html(`<span class="text-bold">${loadavg[0]}</span> <span>${loadavg[1]}</span> <span>${loadavg[2]}</span>`)
+        $("#cpu-threads").html(`${threads.length}`)
+        $("#cpu-cores").html(`${globalThis.cpuCores ? globalThis.cpuCores : threads.length / 2}`)
 
         elLog.html(imgOk)
     }
 
-    setTimeout( () => processCPUData(), globalThis.config.intervals.cpu )
+    setTimeout( processCPUData, globalThis.config.intervals.resources )
 }
 
 
@@ -131,17 +133,30 @@ export const processCPUTemp = async () => {
     const temp = await getInfo("cpu-temp")
 
     if (temp && temp.main) {
-        let tempColor = "fg-cyan"
+        let tempColor,tempAvgColor
+        let tempAvg = (temp.cores.reduce((acc, v)=>acc+ +v, 0) / temp.cores.length).toFixed(0)
+
+        tempColor = tempAvgColor = "fg-cyan"
 
         if (temp.main >= 65 && temp.main < 85) {
             tempColor = "fg-orange"
         } else if (temp.main >= 85) {
             tempColor = "fg-red"
         }
-        $("#cpu-temp").html(`${temp.main}<span>&#8451;</span>`).clearClasses().addClass(tempColor)
+
+        if (tempAvg >= 65 && tempAvg < 85) {
+            tempAvgColor = "fg-orange"
+        } else if (tempAvg >= 85) {
+            tempAvgColor = "fg-red"
+        }
+
+        $("#cpu-temp-avg").html(`${tempAvg}<span>&#8451;</span>`).removeClassBy("fg-").addClass(tempAvgColor)
+        $("#cpu-temp-max").html(`<small class="fg-normal reduce-4">MAX</small> ${temp.main}<span>&#8451;</span>`).removeClassBy("fg-").addClass(tempColor)
         $("#cpu-temp-main").html(`${temp.main}<span>&#8451;</span>`)
         $("#cpu-temp-cores").html(`[${temp.cores.join(", ")}]`)
+
+        globalThis.cpuCores = temp.cores.length
     }
 
-    setTimeout( () => processCPUTemp(), globalThis.config.intervals.cpu )
+    setTimeout(processCPUTemp, globalThis.config.intervals.resources )
 }

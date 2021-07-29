@@ -9,25 +9,35 @@
 ## Основные возможности
 
 **Monitor Client:**
-- [x] Display of the main indicators of the Mina network (Block height, uptime, epoch and slot info)
-- [x] Displaying the status of the node daemon (SYNCED, CATCHUP, BOOTSTRAP, ...)
-- [x] Displaying the health of node (OK, Fork, Hanging)
-- [x] Displaying the server resources consumed by the node (CPU, RAM, NETWORK)
-- [x] Displaying the balance of the specified address and the value of this balance in different currencies
-- [x] Displaying information about delegations to the specified validator address
-- [x] Displaying information about blocks won and rewards received in the current era
-- [x] Displays general information about the site server
-- [x] Convenient live graphs for displaying consumed resources
-- [x] Responsive interface (It is comfortable to look at both PC and phone and tablet)
+- [x] Отображение основных показателей сети Мина (Block height, uptime, epoch and slot info)
+- [x] Отображение состояния демона узла (SYNCED, CATCHUP, BOOTSTRAP, ...)
+- [x] Отображение здоровья узла (ОК, Fork, Hanging)
+- [x] Отображение потребляемых узлом ресурсов сервера (CPU, RAM, NETWORK)
+- [x] Отображение баланса указанного адрес и стоимости этого баланса в различных валютах
+- [x] Отображение информации о делегациях на указанный адрес валидатора
+- [x] Отображение информации о выигранных блоках и полученном вознаграждении в текущей эпохе
+- [x] Отображение общей информации о сервере узла
+- [x] Удобные живые графики для отображения потребляемых ресурсов
+- [x] Отзывчивый (responsive) интерфейс (Комфортно смотреть и на ПК и на телефоне и на планшете)
+
+**Monitor Cluster:**
+- [x] Все, что отображает простой клиент, плюс
+- [x] Отображение состояния нескольких (до 3-х) узлов на одной странице
+- [x] Циклический обход узлов, опрос общей информации для адреса осуществляется последовательно с синхронизированных узлов
+- [x] Отображение скорости ответа GraphQL узла на основной запрос
+
+> Вы можете найти `Monitor Cluster` в [этом репозитории](https://github.com/olton/mina-monitor-cluster)
 
 **Monitor Server Side:**
-- [x] Monitoring node health
-- [x] Identification of critical node states (fork, forward fork, node freeze, lag/lead Mina Explorer)
-- [x] Determining the Synchronization State of a Node
-- [x] Automatic reboot of the node in case of critical state detection
-- [x] Sending messages about the critical state of the node in Telegram and/or Discord
-- [x] Sending the current balance of the specified address to Telegram and/or Discord
-- [x] Sending Mina's cost to Telegram and/or Discord
+- [x] Контроль здоровья узла
+- [x] Определение критических состояний (форк, опережающий форк, зависание узла, отставание/опережение Mina Explorer)
+- [x] Определение состояния синхронизированности узла
+- [x] Автоматическая перезагрузка узла в случае обнаружения критического состояния
+- [x] Отправка сообщений о критическом состоянии узла в Телеграм и/или Дискорд
+- [x] Отправка текущего баланса указанного адрес в Телеграм и/или Дискорд
+- [x] Отправка стоимости Мины в Телеграм и/или Дискорд
+- [x] Отключение snark-worker перед производством блока и последующее возобновление его работы
+- [x] Контроль потребления памяти и перезагрузка узла при критическом использовании памяти
 
 #### Программный стек:
 - сервер - JavaScript
@@ -170,8 +180,8 @@ Parameter `blocks` - determines the order and display of blocks
     "observeExplorer": true,
     "restartStateException": ["BOOTSTRAP"],
     "restartStateSyncedRules": ["MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG"],
-    "alertToTelegram": ["HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS"],
-    "alertToDiscord": ["HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS"],
+    "alertToTelegram": ["EXEC","HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS", "MEM"],
+    "alertToDiscord": ["EXEC","HELLO", "NOT-SYNCED", "MAX", "FORWARD-MAX", "FORK", "FORWARD-FORK", "HANG", "EXPLORER", "RESTART", "BALANCE", "PEERS", "MEM"],
     "price": {
         "currency": "usd",
         "updateInterval": 60000,
@@ -226,6 +236,16 @@ where
 - `hangInterval` - time to restart when node hanging
 - `memAlert` - value to alert when critical memory usage (0 - 100), 0 - no alert
 - `memRestart` - value to restart when critical memory usage (0 - 100), 0 - no restart
+- `snarkWorker` - options to control snark worker
+
+**Snark worker controller**
+- `address` - address to start snark worker after **stop**
+- `fee` - snark worker **fee** value
+- `stopBeforeBlock` - milliseconds to stop before block producing
+- `startAfterBlock` - milliseconds to start after block producing
+- `runWorkerCommand` - command to set or unset address for snark worker
+- `setWorkerFeeCommand` - command to set snark worker fee
+- `controlInterval` - interval to work SW controller
 
 **Values for alerts: `alertToTelegram`, `alertToDiscord`**
 - `HELLO` - node says Hello

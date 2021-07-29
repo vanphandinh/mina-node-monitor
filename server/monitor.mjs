@@ -15,7 +15,7 @@ import {processNodeUptime} from "./uptime.mjs"
 import {processGetDelegations} from "./ledger.mjs";
 import {getPriceInfo, processPriceInfo} from "./coingecko.mjs";
 import {processPriceSend} from "./price-sender.mjs";
-import {processSnarkWorkerController} from "./snark-worker-controller.js";
+import {processSnarkWorkerController} from "./snark-worker-controller.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const configPath = path.resolve(__dirname, 'config.json')
@@ -58,7 +58,7 @@ globalThis.explorerInfo = {
     summary: null
 }
 globalThis.priceInfo = null
-globalThis.snarkWorkerStopped = false
+globalThis.snarkWorkerStopped = null
 globalThis.snarkWorkerStoppedBlockTime = null
 
 let server, useHttps = config.https && (config.https.cert && config.https.key)

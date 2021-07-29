@@ -20,6 +20,14 @@ This is a `client-server` application for visual monitoring of the validator nod
 - [x] Convenient live graphs for displaying consumed resources
 - [x] Responsive interface (It is comfortable to look at both PC and phone and tablet)
 
+**Cluster Client:**
+- [x] Anything that a simple client displays, plus
+- [x] Displaying the status of several (up to 3) nodes on one page
+- [x] Cyclic bypass of nodes, polling of general information for the address is carried out sequentially from synchronized nodes
+- [x] Displaying the response rate of a GraphQL node to the main request
+
+> You can find `Monitor Cluster` in [this repo](https://github.com/olton/mina-monitor-cluster)
+
 **Monitor Server Side:**
 - [x] Monitoring node health
 - [x] Identification of critical node states (fork, forward fork, node freeze, lag/lead Mina Explorer)
@@ -28,6 +36,9 @@ This is a `client-server` application for visual monitoring of the validator nod
 - [x] Sending messages about the critical state of the node in Telegram and/or Discord
 - [x] Sending the current balance of the specified address to Telegram and/or Discord
 - [x] Sending Mina's cost to Telegram and/or Discord
+- [x] Disabling snark-worker before block production and then resuming its work
+- [x] Monitor memory consumption and reboot node when memory is critical
+
 
 #### Monitor built with a stack:
 - server - NodeJS, JavaScript
@@ -220,6 +231,18 @@ where
 - `hangInterval` - time to restart when node hanging
 - `memAlert` - value to alert when critical memory usage (0 - 100), 0 - no alert 
 - `memRestart` - value to restart when critical memory usage (0 - 100), 0 - no restart
+- `snarkWorker` - options to control snark worker
+
+**Snark worker controller**
+- `address` - address to start snark worker after **stop**
+- `fee` - snark worker **fee** value
+- `stopBeforeBlock` - milliseconds to stop before block producing
+- `startAfterBlock` - milliseconds to start after block producing
+- `runWorkerCommand` - command to set or unset address for snark worker
+- `setWorkerFeeCommand` - command to set snark worker fee
+- `controlInterval` - interval to work SW controller
+
+> To disable controller, set `config.snarkWorker.address` property to empty string.
 
 **Values for alerts: `alertToTelegram`, `alertToDiscord`**
 - `HELLO` - node says Hello

@@ -9,8 +9,8 @@ WORKDIR /usr/src/mina-node-monitor
 COPY package*.json ./
 
 # Install lm-sensors
-RUN apt update
-RUN apt -y install lm-sensors
+# RUN apt update
+# RUN apt -y install lm-sensors
 
 RUN npm install
 # If you are building your code for production

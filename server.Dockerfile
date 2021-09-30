@@ -10,7 +10,7 @@ COPY package*.json ./
 
 # Install lm-sensors
 RUN apt update
-RUN apt install lm-sensors
+RUN apt -y install lm-sensors
 
 RUN npm install
 # If you are building your code for production
